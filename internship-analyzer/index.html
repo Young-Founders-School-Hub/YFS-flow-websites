@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YFS Internship Analyzer — Complete System Flowchart</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+        header {
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            color: white;
+            padding: 28px 40px;
+            text-align: center;
+        }
+        header h1 { font-size: 1.8rem; font-weight: 700; }
+        header p { margin-top: 6px; font-size: 0.95rem; opacity: 0.9; }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            padding: 18px 24px;
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            color: #555;
+        }
+        .legend-swatch {
+            width: 16px; height: 16px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .shape-label { font-style: italic; color: #888; font-size: 0.78rem; margin-left: 12px; }
+        .chart-container {
+            padding: 24px;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+        }
+        .mermaid {
+            max-width: 100%;
+        }
+        footer {
+            text-align: center;
+            padding: 16px;
+            font-size: 0.78rem;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>YFS Internship Analyzer — Complete System Flowchart</h1>
+    <p>Full lifecycle: Onboarding &rarr; Matching &rarr; Scheduling &rarr; Meetings &rarr; Completion</p>
+</header>
+
+<div class="legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:#dbeafe"></div> Phase 1 — Onboarding &amp; Data</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#fef3c7"></div> Phase 2 — Project Setup</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#d1fae5"></div> Phase 3 — Scheduling Poll</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#ede9fe"></div> Phase 4 — Meeting Scheduling</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#ffe4e6"></div> Phase 5 — In Progress</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#fce7f3"></div> Phase 6 — End of Internship</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#f3f4f6"></div> Phase 7 — Future Intelligence</div>
+    <span class="shape-label">Diamond = Decision &nbsp;|&nbsp; Rounded box = Process &nbsp;|&nbsp; Cylinder = Database &nbsp;|&nbsp; Double-border = External API</span>
+</div>
+
+<div class="chart-container">
+<pre class="mermaid">
+flowchart TD
+    %% ───────────────────────────────────────
+    %% PHASE 1: ONBOARDING & DATA COLLECTION
+    %% ───────────────────────────────────────
+    subgraph P1["<b>PHASE 1 — Onboarding &amp; Data Collection</b>"]
+        direction TB
+        TRIGGER(["&#9200; Schedule Trigger<br/><i>Runs automatically</i>"])
+        GS1[("&#128196; Google Sheet:<br/>Pre-Onboarded Students")]
+        GS2[("&#128196; Google Sheet:<br/>Onboarded Mentors")]
+        GS3[("&#128196; Google Sheet:<br/>Contact List")]
+
+        TRIGGER --> GS1
+        TRIGGER --> GS2
+        TRIGGER --> GS3
+
+        GS1 -->|"Extract students"| FILT1["Filter &amp; Aggregate<br/>Student Data"]
+        GS2 -->|"Extract mentors"| FILT2["Filter &amp; Aggregate<br/>Mentor Data"]
+        GS3 -->|"Extract facilitators,<br/>projects, contacts"| FILT3["Filter &amp; Aggregate<br/>Facilitators + Projects"]
+
+        FILT1 --> MERGE["5-Way Data Merge<br/><i>Combines all participant data</i>"]
+        FILT2 --> MERGE
+        FILT3 --> MERGE
+
+        MERGE --> VALIDATE{"&#9889; Is data<br/>valid?"}
+
+        VALIDATE -->|"&#10060; INVALID"| ERRTASK["Create Error Task<br/><i>Flag missing/bad data</i><br/>&#9940; STOP"]
+        VALIDATE -->|"&#9989; VALID"| FINALDATA["Final Unified<br/>Participant Record"]
+
+        FINALDATA -->|"Upsert to DB"| DBOPS[("&#128451; PostgreSQL<br/>AWS Data Ops<br/><i>Mentors, Students,<br/>Facilitators tables</i>")]
+    end
+
+    %% ───────────────────────────────────────
+    %% PHASE 2: PROJECT SETUP & CADENCE
+    %% ───────────────────────────────────────
+    subgraph P2["<b>PHASE 2 — Project Setup &amp; Cadence Generation</b>"]
+        direction TB
+        DBOPS --> PROJCHECK{"&#128269; Does project<br/>already exist<br/>in DB?"}
+
+        PROJCHECK -->|"&#9989; YES"| SKIPPROJ["Skip Project Creation<br/><i>Use existing record</i>"]
+        PROJCHECK -->|"&#10060; NO"| AIPROJ["&#129302; AI Project Generator<br/><i>Creates project title<br/>&amp; description</i>"]
+
+        AIPROJ --> PROJDB[("&#128451; Insert Project<br/>into PostgreSQL")]
+        SKIPPROJ --> CADENCE_START
+        PROJDB --> CADENCE_START
+
+        CADENCE_START["Prepare Cadence Input<br/><i>Mentor + Student + Project data</i>"]
+        CADENCE_START --> AICADENCE["&#129302; AI Cadence Generator<br/><i>Creates 4-week plan</i><br/>Week 1-4 milestones"]
+
+        AICADENCE --> GDRIVE["&#128193; Create Google Drive Folder<br/><i>Shared with mentor, students,<br/>facilitators</i>"]
+        GDRIVE --> CADENCEDOC["&#128196; 4-Week Cadence Document<br/><i>Uploaded to shared folder</i>"]
+    end
+
+    %% ───────────────────────────────────────
+    %% PHASE 3: SCHEDULING POLL & KICKOFF EMAIL
+    %% ───────────────────────────────────────
+    subgraph P3["<b>PHASE 3 — Scheduling Poll &amp; Kickoff Email</b>"]
+        direction TB
+        CADENCEDOC --> PREPOLLDATA["Prepare Scheduling Data<br/><i>35 weekday dates across 7 weeks</i>"]
+
+        PREPOLLDATA --> RALLLY_CREATE[["&#128279; Rallly API<br/>POST /polls<br/><i>Creates scheduling poll<br/>with date options</i>"]]
+
+        RALLLY_CREATE -->|"Returns poll URL<br/>+ admin URL"| PREPEMAIL["Prepare Email Data<br/><i>Merge Rallly URLs +<br/>Drive link + participant info</i>"]
+
+        PREPEMAIL --> KICKOFF_EMAIL["&#9993; Send Kickoff Email<br/>(Gmail)"]
+
+        KICKOFF_EMAIL --> MENTOR_GETS["&#128104;&#8205;&#127891; Mentor receives:<br/>&#8226; Vote on available times button<br/>&#8226; Google Drive link<br/>&#8226; Project overview"]
+
+        KICKOFF_EMAIL --> STUDENT_GETS["&#128105;&#8205;&#127891; Students receive:<br/>&#8226; Vote on preferred timeslot button<br/>&#8226; Google Drive link<br/>&#8226; Pre-kickoff checklist"]
+
+        KICKOFF_EMAIL --> STATUS1["&#128994; Status &rarr; CADENCE_GENERATED<br/><i>Waiting for Rallly voting</i>"]
+    end
+
+    %% ───────────────────────────────────────
+    %% PHASE 4: MEETING SCHEDULING (Workflow 2)
+    %% ───────────────────────────────────────
+    subgraph P4["<b>PHASE 4 — Meeting Scheduling (after voting)</b>"]
+        direction TB
+        STATUS1 -.->|"&#9997; Mentor + Students<br/>vote on Rallly poll"| WF2_TRIGGER
+
+        WF2_TRIGGER(["&#128100; Manual Trigger<br/><i>Facilitator enters matching_id</i>"])
+
+        WF2_TRIGGER --> FETCH_DATA2["Fetch Internship Data<br/><i>From Google Sheets + DB</i>"]
+
+        FETCH_DATA2 --> RALLLY_CHECK{"&#128269; Is Rallly poll<br/>status =<br/>'scheduled'?"}
+
+        RALLLY_CHECK -->|"&#10060; NOT scheduled"| POLL_STOP["&#9940; STOP<br/><i>Poll not finalized yet.<br/>Tell facilitator to wait.</i>"]
+
+        RALLLY_CHECK -->|"&#9989; YES, scheduled"| GET_DATES[["&#128279; Rallly API<br/>GET /polls/results<br/><i>Extract confirmed<br/>meeting dates</i>"]]
+
+        GET_DATES --> GCAL["&#128197; Create 4 Google Calendar Events<br/><i>One per week of internship</i><br/>Attendees: Mentor + Students + Facilitator"]
+
+        GCAL --> SCHED_SHEET["&#128196; Create Schedule Google Sheet<br/><i>Rows: week, date, time,<br/>editable=TRUE, locked=FALSE</i>"]
+
+        SCHED_SHEET --> CONFIRM_EMAIL["&#9993; Send Schedule Confirmation Email<br/><i>4-week schedule overview +<br/>Calendar invites + Sheet link</i>"]
+
+        CONFIRM_EMAIL --> STATUS2["&#128994; Status &rarr; SCHEDULING_COMPLETED"]
+    end
+
+    %% ───────────────────────────────────────
+    %% PHASE 5: INTERNSHIP IN PROGRESS
+    %% ───────────────────────────────────────
+    subgraph P5["<b>PHASE 5 — Internship In Progress (4 Weeks)</b>"]
+        direction TB
+        STATUS2 --> ROOM_SCHED(["&#9200; EnableX Room Scheduler<br/><i>Runs every 1-2 hours</i>"])
+
+        ROOM_SCHED --> READ_SHEET["Read Schedule Google Sheet<br/><i>All rows where locked=FALSE</i>"]
+
+        READ_SHEET --> WINDOW_CHECK{"&#9200; Is any meeting<br/>within 12 hours<br/>AND not locked?"}
+
+        WINDOW_CHECK -->|"&#10060; NO"| SLEEP["No action needed<br/><i>Check again next cycle</i>"]
+
+        WINDOW_CHECK -->|"&#9989; YES"| LOCK_ROW["&#128274; Lock the row<br/><i>locked=TRUE in Sheet<br/>No more date changes</i>"]
+
+        LOCK_ROW --> READ_FINAL["Read final date/time<br/><i>May have been edited<br/>by facilitator</i>"]
+
+        READ_FINAL --> ENABLEX_CREATE[["&#128249; EnableX API<br/>POST /rooms<br/><i>Create video room<br/>Duration: 60 min</i>"]]
+
+        ENABLEX_CREATE -->|"Returns room_id +<br/>meeting URLs"| UPDATE_CAL["&#128197; Update Calendar Event<br/><i>Add EnableX meeting link</i>"]
+
+        UPDATE_CAL --> UPDATE_SHEET2["&#128196; Update Schedule Sheet<br/><i>room_id, meeting links,<br/>enablex_room_created=TRUE</i>"]
+
+        UPDATE_SHEET2 --> REMINDER_EMAIL["&#9993; Send Meeting Reminder<br/><i>Mentor gets moderator link<br/>Students get participant link</i>"]
+
+        REMINDER_EMAIL --> MEETING["&#128249; Video Meeting Happens<br/><i>Via EnableX (up to 60 min)<br/>No chat (safeguarding)</i>"]
+
+        MEETING --> SESSION_TRACKER(["&#9200; Session Tracker<br/><i>After meeting ends</i>"])
+
+        SESSION_TRACKER --> CDR_FETCH[["&#128279; EnableX CDR API<br/>GET /cdr/room<br/><i>Fetch attendance data:<br/>who joined, duration,<br/>camera/audio status</i>"]]
+
+        CDR_FETCH --> ATTENDANCE_CHECK{"&#128269; Check<br/>attendance"}
+
+        ATTENDANCE_CHECK -->|"Student absent"| ALERT_FACIL["&#9888; Alert Facilitator<br/><i>Student no-show</i>"]
+        ATTENDANCE_CHECK -->|"Mentor absent"| ESCALATE["&#128680; Escalate<br/><i>Mentor no-show</i>"]
+        ATTENDANCE_CHECK -->|"Session less than 15 min"| FLAG_REVIEW["&#9888; Flag for Review<br/><i>Short session</i>"]
+        ATTENDANCE_CHECK -->|"All OK"| STORE_SESSION[("&#128451; Store Session Data<br/><i>internship_meeting_sessions<br/>table in PostgreSQL</i>")]
+
+        ALERT_FACIL --> STORE_SESSION
+        ESCALATE --> STORE_SESSION
+        FLAG_REVIEW --> STORE_SESSION
+    end
+
+    %% Schedule Change Sync (sub-process)
+    subgraph P5B["<b>Schedule Change Sync</b><br/><i>Runs every 30 min</i>"]
+        direction TB
+        SYNC_TRIGGER(["&#9200; Every 30 min"])
+        SYNC_TRIGGER --> SYNC_CHECK{"&#128269; Was sheet<br/>edited?"}
+        SYNC_CHECK -->|"YES &amp;<br/>locked=FALSE"| SYNC_UPDATE["&#128197; Update Google Calendar<br/><i>Reflect new date/time</i>"]
+        SYNC_CHECK -->|"YES &amp;<br/>locked=TRUE"| SYNC_REVERT["&#128274; Revert sheet edit<br/><i>Cannot change locked rows</i>"]
+        SYNC_CHECK -->|"NO"| SYNC_SKIP["No action"]
+    end
+
+    %% ───────────────────────────────────────
+    %% PHASE 6: END OF INTERNSHIP
+    %% ───────────────────────────────────────
+    subgraph P6["<b>PHASE 6 — End of Internship</b>"]
+        direction TB
+        STORE_SESSION -.->|"After 4 weeks<br/>of meetings"| EOI_TRIGGER
+
+        EOI_TRIGGER(["&#128100; Manual Trigger<br/><i>Facilitator initiates<br/>end-of-internship</i>"])
+
+        EOI_TRIGGER --> EOI_FETCH["Fetch Internship Data<br/><i>Students, mentor, project,<br/>dates, facilitators</i>"]
+
+        EOI_FETCH --> EOI_FORK1["&#9993; Send Feedback Forms"]
+        EOI_FETCH --> EOI_FORK2["&#127912; Get Company Logo"]
+
+        EOI_FORK1 --> STU_FORM["&#128196; Student Feedback<br/>Google Form"]
+        EOI_FORK1 --> MEN_FORM["&#128196; Mentor Feedback<br/>Google Form"]
+
+        EOI_FORK2 --> LOGO_CHECK{"&#128269; Logo found<br/>on Clearbit?"}
+        LOGO_CHECK -->|"&#9989; YES"| LOGO_OK["Use Clearbit Logo URL"]
+        LOGO_CHECK -->|"&#10060; NO"| LOGO_SHEET["Fallback: Google Sheet<br/><i>Manual logo overrides</i>"]
+
+        LOGO_OK --> CERT_GEN
+        LOGO_SHEET --> CERT_GEN
+
+        CERT_GEN["&#127912; Generate Certificates<br/><i>HTML template + Gotenberg<br/>&rarr; PDF for each participant</i><br/>Student cert + Mentor cert"]
+
+        CERT_GEN --> COMPLETION_EMAIL["&#9993; Send Completion Email<br/><i>Certificate PDF attached<br/>Feedback form link<br/>Congratulations message</i>"]
+
+        COMPLETION_EMAIL --> FEEDBACK_TRACKER(["&#9200; Feedback Tracker<br/><i>Runs daily</i>"])
+
+        FEEDBACK_TRACKER --> BOTH_CHECK{"&#128269; Have both<br/>student &amp; mentor<br/>submitted feedback?"}
+
+        BOTH_CHECK -->|"&#10060; NO"| WAIT_FEEDBACK["Wait &amp; check tomorrow"]
+        BOTH_CHECK -->|"&#9989; YES"| AUTO_CERT["&#9989; Auto-trigger final<br/>certificate delivery<br/>if not already sent"]
+
+        AUTO_CERT --> STATUS_DONE["&#128994; Status &rarr; COMPLETED"]
+    end
+
+    %% ───────────────────────────────────────
+    %% PHASE 7: FUTURE — MONITORING & INTELLIGENCE
+    %% ───────────────────────────────────────
+    subgraph P7["<b>PHASE 7 — Future: Monitoring &amp; Intelligence (v1.3.0+)</b>"]
+        direction TB
+        STATUS_DONE -.->|"Future releases"| ENG_MON
+
+        ENG_MON(["&#9200; Weekly Engagement Monitor"])
+        ENG_MON --> METRICS["Calculate Engagement Metrics<br/><i>Attendance rate, no-shows,<br/>session duration, participation</i>"]
+
+        METRICS --> AI_ANALYSIS["&#129302; AI Analysis Engine<br/><i>Google Gemini</i><br/>Task completion vs cadence<br/>Learning progress"]
+
+        AI_ANALYSIS --> RISK_SCORE{"&#128269; Risk Score<br/>&gt; 50?"}
+
+        RISK_SCORE -->|"&#9989; SAFE"| WEEKLY_REPORT["&#128196; Weekly Summary<br/><i>Sent to facilitator</i>"]
+        RISK_SCORE -->|"&#128680; AT_RISK"| RISK_ALERT["&#128680; Alert Facilitator<br/>+ Check-in email to mentor<br/>+ Create follow-up task"]
+
+        RISK_ALERT --> ESCALATION{"&#9200; Response<br/>within 48h?"}
+        ESCALATION -->|"&#10060; NO"| ESC_UP["&#128680; Escalate further"]
+        ESCALATION -->|"&#9989; YES"| RESOLVED["Issue addressed"]
+    end
+
+    %% ───────────────────────────────────────
+    %% STYLING
+    %% ───────────────────────────────────────
+    style P1 fill:#dbeafe,stroke:#3b82f6,stroke-width:2px,color:#1e3a5f
+    style P2 fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#78350f
+    style P3 fill:#d1fae5,stroke:#10b981,stroke-width:2px,color:#064e3b
+    style P4 fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px,color:#3b0764
+    style P5 fill:#ffe4e6,stroke:#f43f5e,stroke-width:2px,color:#881337
+    style P5B fill:#fff1f2,stroke:#fb7185,stroke-width:1px,color:#881337
+    style P6 fill:#fce7f3,stroke:#ec4899,stroke-width:2px,color:#831843
+    style P7 fill:#f3f4f6,stroke:#9ca3af,stroke-width:2px,stroke-dasharray:5 5,color:#374151
+
+    style ERRTASK fill:#fecaca,stroke:#ef4444,color:#7f1d1d
+    style POLL_STOP fill:#fecaca,stroke:#ef4444,color:#7f1d1d
+    style ALERT_FACIL fill:#fef08a,stroke:#eab308,color:#713f12
+    style ESCALATE fill:#fecaca,stroke:#ef4444,color:#7f1d1d
+    style FLAG_REVIEW fill:#fef08a,stroke:#eab308,color:#713f12
+    style RISK_ALERT fill:#fecaca,stroke:#ef4444,color:#7f1d1d
+    style ESC_UP fill:#fecaca,stroke:#ef4444,color:#7f1d1d
+
+    style STATUS1 fill:#bbf7d0,stroke:#22c55e,color:#14532d
+    style STATUS2 fill:#bbf7d0,stroke:#22c55e,color:#14532d
+    style STATUS_DONE fill:#bbf7d0,stroke:#22c55e,color:#14532d
+
+    style DBOPS fill:#e0e7ff,stroke:#6366f1,color:#312e81
+    style STORE_SESSION fill:#e0e7ff,stroke:#6366f1,color:#312e81
+    style PROJDB fill:#e0e7ff,stroke:#6366f1,color:#312e81
+</pre>
+</div>
+
+<footer>
+    YFS Internship Analyzer &mdash; System Flowchart &mdash; Generated April 2026
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+            fontFamily: 'Segoe UI, system-ui, sans-serif',
+            fontSize: '13px',
+            primaryColor: '#dbeafe',
+            primaryTextColor: '#1e3a5f',
+            primaryBorderColor: '#3b82f6',
+            lineColor: '#64748b',
+            secondaryColor: '#f1f5f9',
+            tertiaryColor: '#f8fafc'
+        },
+        flowchart: {
+            htmlLabels: true,
+            curve: 'basis',
+            padding: 16,
+            nodeSpacing: 30,
+            rankSpacing: 40,
+            useMaxWidth: false
+        },
+        securityLevel: 'loose'
+    });
+</script>
+
+</body>
+</html>
